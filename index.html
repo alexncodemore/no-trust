@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCSC-no-trust</title>
+<style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f4f4f4; }
+    header { background: #222; color: white; padding: 15px; text-align: center; }
+    .container { padding: 20px; max-width: 900px; margin: auto; }
+    .subject { background: white; margin-bottom: 20px; padding: 10px; border-radius: 5px; }
+    .subject h2 { margin: 0; }
+    .note { border-top: 1px solid #ddd; padding: 10px; }
+    .note a { display: inline-block; margin-top: 5px; padding: 5px 10px; background: #007BFF; color: white; text-decoration: none; border-radius: 4px; }
+    .note a:hover { background: #0056b3; }
+    .admin-panel { display: none; background: #fff; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+    .btn { padding: 5px 10px; background: #222; color: white; border: none; cursor: pointer; border-radius: 4px; }
+    .btn-danger { background: red; }
+    .btn-warning { background: orange; }
+    input, textarea, select { width: 100%; padding: 8px; margin: 5px 0; }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>TCSC-no-trust</h1>
+    <button onclick="showLogin()">Admin Login</button>
+    <button onclick="logoutAdmin()" id="logoutBtn" style="display:none;">Logout</button>
+</header>
+
+<div class="container">
+    <div id="adminLogin" style="display:none;">
+        <h3>Admin Login</h3>
+        <input type="text" id="adminId" placeholder="Admin ID">
+        <input type="password" id="adminPass" placeholder="Password">
+        <button class="btn" onclick="loginAdmin()">Login</button>
+    </div>
+
+    <div class="admin-panel" id="adminPanel">
+        <h3>Admin Panel</h3>
+        <input type="text" id="sectionName" placeholder="New Subject Name">
+        <button class="btn" onclick="addSection()">Add Section</button>
+        <hr>
+        <h4>Add Note</h4>
+        <select id="noteSection"></select>
+        <input type="text" id="noteTitle" placeholder="Note Title">
+        <textarea id="noteContent" placeholder="Note Content"></textarea>
+        <input type="file" id="noteFile" accept=".pdf,.doc,.docx">
+        <button class="btn" onclick="handleFileUpload()">Upload File</button>
+        <button class="btn" onclick="addNote()">Add Note</button>
+    </div>
+
+    <div id="notesDisplay"></div>
+</div>
+
+<script>
+let notesData = JSON.parse(localStorage.getItem("tcscNotes")) || {};
+let isAdmin = false;
+let uploadedFileData = { name: "", type: "", data: "" }; // Store uploaded file info
+
+function saveData() {
+    localStorage.setItem("tcscNotes", JSON.stringify(notesData));
+    displayNotes();
+    loadSectionOptions();
+}
+
+function displayNotes() {
+    let container = document.getElementById("notesDisplay");
+    container.innerHTML = "";
+    for (let section in notesData) {
+        let subjectDiv = document.createElement("div");
+        subjectDiv.className = "subject";
+        let header = `<h2>${section} ${isAdmin ? `<button class='btn-danger btn' onclick='deleteSection("${section}")'>Delete Section</button>` : ""}</h2>`;
+        subjectDiv.innerHTML = header;
+        
+        notesData[section].forEach((note, idx) => {
+            let noteDiv = document.createElement("div");
+            noteDiv.className = "note";
+            let fileLink = note.file && note.file.data 
+                ? `<a href="${note.file.data}" download="${note.file.name}">Download ${note.file.name}</a>` 
+                : "";
+            noteDiv.innerHTML = `
+                <strong>${note.title}</strong><p>${note.content}</p>
+                ${fileLink}
+                ${isAdmin ? `<br><button class='btn-warning btn' onclick='editNote("${section}",${idx})'>Edit</button>
+                             <button class='btn-danger btn' onclick='deleteNote("${section}",${idx})'>Delete</button>` : ""}
+            `;
+            subjectDiv.appendChild(noteDiv);
+        });
+        container.appendChild(subjectDiv);
+    }
+}
+
+function loadSectionOptions() {
+    let select = document.getElementById("noteSection");
+    select.innerHTML = "";
+    for (let section in notesData) {
+        let option = document.createElement("option");
+        option.value = section;
+        option.textContent = section;
+        select.appendChild(option);
+    }
+}
+
+function addSection() {
+    let name = document.getElementById("sectionName").value.trim();
+    if (name && !notesData[name]) {
+        notesData[name] = [];
+        saveData();
+    }
+}
+
+function handleFileUpload() {
+    let fileInput = document.getElementById("noteFile").files[0];
+    if (!fileInput) {
+        alert("Please select a file first.");
+        return;
+    }
+    let reader = new FileReader();
+    reader.onload = function(e) {
+        uploadedFileData = { name: fileInput.name, type: fileInput.type, data: e.target.result };
+        alert("File uploaded successfully!");
+    };
+    reader.readAsDataURL(fileInput);
+}
+
+function addNote() {
+    let section = document.getElementById("noteSection").value;
+    let title = document.getElementById("noteTitle").value;
+    let content = document.getElementById("noteContent").value;
+    notesData[section].push({ title, content, file: uploadedFileData });
+    uploadedFileData = { name: "", type: "", data: "" }; // Reset after use
+    saveData();
+}
+
+function deleteSection(section) {
+    if (confirm("Delete section?")) {
+        delete notesData[section];
+        saveData();
+    }
+}
+
+function deleteNote(section, idx) {
+    notesData[section].splice(idx, 1);
+    saveData();
+}
+
+function editNote(section, idx) {
+    let note = notesData[section][idx];
+    let title = prompt("Edit title", note.title);
+    let content = prompt("Edit content", note.content);
+    notesData[section][idx] = { title, content, file: note.file };
+    saveData();
+}
+
+function showLogin() {
+    document.getElementById("adminLogin").style.display = "block";
+}
+
+function loginAdmin() {
+    let id = document.getElementById("adminId").value;
+    let pass = document.getElementById("adminPass").value;
+    if (id === "admin" && pass === "261088") {
+        isAdmin = true;
+        document.getElementById("adminPanel").style.display = "block";
+        document.getElementById("logoutBtn").style.display = "inline-block";
+        document.getElementById("adminLogin").style.display = "none";
+        displayNotes();
+    } else {
+        alert("Invalid credentials");
+    }
+}
+
+function logoutAdmin() {
+    isAdmin = false;
+    document.getElementById("adminPanel").style.display = "none";
+    document.getElementById("logoutBtn").style.display = "none";
+    displayNotes();
+}
+
+displayNotes();
+loadSectionOptions();
+</script>
+
+</body>
+</html>
