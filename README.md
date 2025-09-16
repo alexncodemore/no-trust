@@ -1,5 +1,3 @@
-# 🛡️ TCSC-no-trust
-
 A browser-based note management system with admin controls, built using **HTML**, **CSS**, and **JavaScript**. This single-page application allows users to view categorized notes and enables admins to add, edit, delete, and upload files—all stored locally using `localStorage`. Designed for educational use and quick deployment.
 
 ---
@@ -57,6 +55,6 @@ Free for educational and personal use.
 
 ### Created by Dikshita Kalitkar for learning and demonstration purposes.
 
-If you'd like help customizing this for a college submission, adding screenshots, or converting it into a full-stack version with PHP/MySQL or Firebase, I’d be happy to help!
----
+**If you'd like help customizing this for a college submission, adding screenshots, or converting it into a full-stack version with PHP/MySQL or Firebase, I’d be happy to help!
+**---
 
