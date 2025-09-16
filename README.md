@@ -55,6 +55,5 @@ Free for educational and personal use.
 
 ### Created by Dikshita Kalitkar for learning and demonstration purposes.
 
-**If you'd like help customizing this for a college submission, adding screenshots, or converting it into a full-stack version with PHP/MySQL or Firebase, I’d be happy to help!
-**---
+---
 
